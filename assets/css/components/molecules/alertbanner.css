@@ -1,0 +1,178 @@
+/* Styles pour le composant AlertBanner */
+.alert {
+  position: relative;
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-md);
+  border-left-width: 4px;
+}
+
+.alert-container {
+  display: flex;
+  align-items: flex-start;
+}
+
+.alert-icon {
+  margin-right: var(--spacing-md);
+  margin-top: 2px;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-title {
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-xs);
+}
+
+.alert-message {
+  margin-bottom: 0;
+}
+
+.alert-close {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: inherit;
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
+}
+
+.alert-close:hover {
+  opacity: 1;
+}
+
+/* Variantes d'alertes */
+.alert-info {
+  color: #0c5460;
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+  border-left-color: var(--color-info);
+}
+
+.alert-warning {
+  color: #856404;
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+  border-left-color: var(--color-warning);
+}
+
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  border-left-color: var(--color-error);
+}
+
+.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  border-left-color: var(--color-success);
+}
+
+/* Alertes pour le transport */
+.alert-disruption {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  border-left-color: var(--color-error);
+}
+
+.alert-delay {
+  color: #856404;
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+  border-left-color: var(--color-warning);
+}
+
+.alert-maintenance {
+  color: #0c5460;
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+  border-left-color: var(--color-info);
+}
+
+.alert-schedule-change {
+  color: #0c3b54;
+  background-color: #d1e7f1;
+  border-color: #bee9eb;
+  border-left-color: var(--color-secondary);
+}
+
+/* Alertes avec tags */
+.alert-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.alert-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  border-radius: var(--border-radius-sm);
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.alert-tag .icon {
+  margin-right: var(--spacing-xs);
+}
+
+/* ActionBanner (version avec actions) */
+.alert-actions {
+  margin-top: var(--spacing-md);
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* Groupe d'alertes */
+.alert-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.alert-group-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Version compacte pour listes */
+.alert-compact {
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+}
+
+.alert-compact .alert-title {
+  font-size: var(--font-size-sm);
+}
+
+.alert-compact .alert-message {
+  font-size: var(--font-size-xs);
+}
+
+/* Alertes temporelles */
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.alert-time {
+  font-size: var(--font-size-xs);
+  color: inherit;
+  opacity: 0.8;
+}

@@ -1,0 +1,249 @@
+/* Styles pour le composant TimeTable */
+.timetable {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.timetable-container {
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.timetable-header {
+  background-color: var(--color-background-light);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.timetable-header th {
+  padding: var(--spacing-md);
+  font-weight: var(--font-weight-medium);
+  text-align: left;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.timetable-header th.timetable-time-column {
+  text-align: center;
+  min-width: 100px;
+}
+
+.timetable-row {
+  transition: background-color var(--transition-fast);
+}
+
+.timetable-row:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.timetable-row td {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.timetable-row:last-child td {
+  border-bottom: none;
+}
+
+.timetable-stop-column {
+  min-width: 200px;
+}
+
+.timetable-time-column {
+  text-align: center;
+  white-space: nowrap;
+  font-weight: var(--font-weight-medium);
+}
+
+.timetable-stop-name {
+  font-weight: var(--font-weight-medium);
+}
+
+.timetable-stop-code {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+  margin-left: var(--spacing-xs);
+}
+
+.timetable-line-column {
+  white-space: nowrap;
+}
+
+.timetable-direction-column {
+  max-width: 300px;
+}
+
+/* Styles des cellules d'horaires */
+.timetable-time {
+  font-weight: var(--font-weight-medium);
+}
+
+.timetable-time-realtime {
+  color: var(--color-success);
+}
+
+.timetable-time-delay {
+  color: var(--color-warning);
+}
+
+.timetable-time-cancelled {
+  color: var(--color-error);
+  text-decoration: line-through;
+}
+
+.timetable-delay {
+  font-size: var(--font-size-xs);
+  margin-left: var(--spacing-xs);
+}
+
+.timetable-delay-positive {
+  color: var(--color-error);
+}
+
+.timetable-delay-negative {
+  color: var(--color-success);
+}
+
+/* Tableau des prochains départs */
+.timetable-next-departures th {
+  text-align: center;
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.timetable-next-departures td {
+  text-align: center;
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+/* Filtres et contrôles */
+.timetable-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--color-background-light);
+  border-radius: var(--border-radius-md);
+}
+
+.timetable-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.timetable-filter-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.timetable-date-navigation {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-left: auto;
+}
+
+.timetable-date {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Styles des marqueurs */
+.timetable-marker {
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--spacing-xs);
+}
+
+.timetable-marker-accessible {
+  color: var(--color-info);
+}
+
+.timetable-marker-bicycle {
+  color: #4DB6AC;
+}
+
+.timetable-marker-realtime {
+  color: var(--color-success);
+}
+
+/* Tableaux responsifs */
+@media (max-width: 768px) {
+  .timetable-responsive {
+    display: block;
+  }
+  
+  .timetable-responsive thead {
+    display: none;
+  }
+  
+  .timetable-responsive tbody {
+    display: block;
+  }
+  
+  .timetable-responsive tr {
+    display: block;
+    margin-bottom: var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+  }
+  
+  .timetable-responsive td {
+    display: block;
+    text-align: right;
+    border-bottom: 1px solid var(--color-border);
+    position: relative;
+    padding-left: 50%;
+  }
+  
+  .timetable-responsive td:last-child {
+    border-bottom: none;
+  }
+  
+  .timetable-responsive td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: var(--spacing-md);
+    width: 45%;
+    white-space: nowrap;
+    font-weight: var(--font-weight-medium);
+    text-align: left;
+  }
+}
+
+/* Pastilles pour les modes de transport */
+.timetable-mode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: var(--spacing-xs);
+}
+
+.timetable-mode-bus {
+  background-color: #FFB74D;
+  color: black;
+}
+
+.timetable-mode-tram {
+  background-color: #81C784;
+  color: black;
+}
+
+.timetable-mode-metro {
+  background-color: #64B5F6;
+  color: black;
+}
+
+.timetable-mode-train {
+  background-color: #7986CB;
+  color: white;
+}

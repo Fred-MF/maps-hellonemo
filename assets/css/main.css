@@ -1,0 +1,95 @@
+/* main.css - Point d'entrée principal CSS pour le projet MyBus */
+
+/* Base */
+@import './reset.css';
+@import './variables.css';
+@import './typography.css';
+
+/* Composants atomiques */
+@import './components/button.css';
+@import './components/badge.css';
+@import './components/input.css';
+@import './components/icon.css';
+@import './components/card.css';
+
+/* Composants moléculaires */
+@import './components/molecules/searchbar.css';
+@import './components/molecules/networkcard.css';
+@import './components/molecules/alertbanner.css';
+@import './components/molecules/lineitem.css';
+@import './components/molecules/timetable.css';
+
+/* Layout */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 calc(-1 * var(--spacing-md));
+}
+
+.col {
+  flex: 1 0 0%;
+  padding: 0 var(--spacing-md);
+}
+
+/* Utilitaires */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.mt-xs { margin-top: var(--spacing-xs); }
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mt-xl { margin-top: var(--spacing-xl); }
+
+.mb-xs { margin-bottom: var(--spacing-xs); }
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+.mb-xl { margin-bottom: var(--spacing-xl); }
+
+.ml-auto { margin-left: auto; }
+.mr-auto { margin-right: auto; }
+
+.d-flex { display: flex; }
+.align-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.gap-sm { gap: var(--spacing-sm); }
+.gap-md { gap: var(--spacing-md); }
+
+.hidden { display: none; }
+.visible { display: block; }
+
+/* Grilles responsives */
+.grid {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 992px) {
+  .grid-4 { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 576px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}

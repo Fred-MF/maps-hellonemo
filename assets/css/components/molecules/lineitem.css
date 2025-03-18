@@ -1,0 +1,222 @@
+/* Styles communs pour les éléments de liste */
+.list-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+  background-color: var(--color-background);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.list-item:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.list-item-icon {
+  margin-right: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.list-item-content {
+  flex: 1;
+}
+
+.list-item-title {
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-xs);
+}
+
+.list-item-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+}
+
+.list-item-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-left: var(--spacing-md);
+}
+
+/* Variante pour les lignes de transport */
+.line-item {
+  border-left: 4px solid transparent;
+}
+
+.line-item-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: var(--font-weight-bold);
+  border-radius: var(--border-radius-md);
+  margin-right: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.line-item-details {
+  display: flex;
+  align-items: center;
+  margin-top: var(--spacing-xs);
+}
+
+.line-item-detail {
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+  margin-right: var(--spacing-md);
+}
+
+.line-item-detail .icon {
+  margin-right: var(--spacing-xs);
+}
+
+.line-item-status {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  border-radius: var(--border-radius-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.status-normal {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: var(--color-success);
+}
+
+.status-disruption {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: var(--color-error);
+}
+
+.status-delay {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: var(--color-warning);
+}
+
+/* Variantes par mode de transport */
+.line-item-bus {
+  border-left-color: #FFB74D;
+}
+
+.line-item-bus .line-item-number {
+  background-color: #FFB74D;
+  color: black;
+}
+
+.line-item-tram {
+  border-left-color: #81C784;
+}
+
+.line-item-tram .line-item-number {
+  background-color: #81C784;
+  color: black;
+}
+
+.line-item-metro {
+  border-left-color: #64B5F6;
+}
+
+.line-item-metro .line-item-number {
+  background-color: #64B5F6;
+  color: black;
+}
+
+.line-item-train {
+  border-left-color: #7986CB;
+}
+
+.line-item-train .line-item-number {
+  background-color: #7986CB;
+  color: white;
+}
+
+/* Variante pour les arrêts */
+.stop-item {
+  border-left: 4px solid var(--color-success);
+}
+
+.stop-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: rgba(76, 175, 80, 0.1);
+  color: var(--color-success);
+  margin-right: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.stop-item-lines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+}
+
+.stop-item-next-departures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.departure-item {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-background-light);
+  border-radius: var(--border-radius-sm);
+}
+
+.departure-time {
+  font-weight: var(--font-weight-medium);
+  margin-right: var(--spacing-xs);
+}
+
+.departure-line {
+  display: flex;
+  align-items: center;
+  margin-right: var(--spacing-xs);
+}
+
+.departure-line .badge {
+  margin-right: var(--spacing-xs);
+}
+
+.departure-destination {
+  color: var(--color-text-light);
+  font-size: var(--font-size-xs);
+}
+
+/* Compact version */
+.list-item-compact {
+  padding: var(--spacing-sm);
+}
+
+.list-item-compact .list-item-icon,
+.list-item-compact .line-item-number,
+.list-item-compact .stop-item-icon {
+  width: 32px;
+  height: 32px;
+  margin-right: var(--spacing-sm);
+}
+
+.list-item-compact .list-item-title {
+  font-size: var(--font-size-sm);
+}
+
+.list-item-compact .list-item-subtitle {
+  font-size: var(--font-size-xs);
+}
