@@ -7,7 +7,7 @@
   <meta name="description" content="Tous les horaires de bus, tram et métro en France. Téléchargez l'application MyBus pour acheter et valider vos tickets depuis votre smartphone.">
   
   <!-- Styles -->
-  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
@@ -17,32 +17,32 @@
     <header class="header">
       <div class="container">
         <div class="header-container">
-          <div class="header-logo">MyBus</div>
+          <a href="/" class="header-logo">MyBus</a>
           <nav class="header-nav">
-            <a href="#" class="btn btn-tertiary">Réseaux</a>
-            <a href="#" class="btn btn-tertiary">Fonctionnalités</a>
+            <a href="#networks" class="btn btn-tertiary">Réseaux</a>
+            <a href="#features" class="btn btn-tertiary">Fonctionnalités</a>
             <a href="#" class="btn btn-tertiary">Blog</a>
             <a href="#" class="btn btn-tertiary">Contact</a>
           </nav>
-          <button class="mobile-menu-toggle d-md-none">
+          <button class="mobile-menu-toggle" aria-label="Menu">
             <span class="icon icon-md"><i class="material-icons">menu</i></span>
           </button>
         </div>
       </div>
     </header>
-    
-    <!-- Mobile Menu (masqué par défaut) -->
+
+    <!-- Mobile Menu -->
     <div class="mobile-menu">
       <div class="container">
         <nav class="mobile-nav">
-          <a href="#" class="mobile-nav-item">Réseaux</a>
-          <a href="#" class="mobile-nav-item">Fonctionnalités</a>
+          <a href="#networks" class="mobile-nav-item">Réseaux</a>
+          <a href="#features" class="mobile-nav-item">Fonctionnalités</a>
           <a href="#" class="mobile-nav-item">Blog</a>
           <a href="#" class="mobile-nav-item">Contact</a>
         </nav>
       </div>
     </div>
-    
+
     <!-- Hero Section -->
     <section class="hero">
       <div class="hero-container">
@@ -73,63 +73,43 @@
         </div>
       </div>
     </section>
-    
-    <!-- App Download Section -->
-    <section class="app-download">
-      <div class="app-download-container">
-        <div class="app-download-image">
-          <img src="https://placeholder.com/300x600" alt="Application MyBus" style="max-width: 100%; height: auto;">
-        </div>
-        <div class="app-download-content">
-          <h2 class="app-download-title">L'application MyBus</h2>
-          <div class="app-download-text">
-            <p>Avec MyBus, achetez et validez vos titres de transport directement depuis votre smartphone.</p>
-            <p>Plus besoin de faire la queue ou de chercher un distributeur, MyBus vous simplifie la vie !</p>
-          </div>
-          
-          <div class="features-grid" style="margin-bottom: var(--spacing-lg);">
-            <div class="feature-item">
-              <div class="feature-icon">
-                <span class="icon icon-xl"><i class="material-icons">directions</i></span>
-              </div>
-              <h3 class="feature-title">Itinéraires</h3>
-              <p>Trouvez le meilleur trajet pour votre destination</p>
+
+    <!-- Map Section -->
+    <section class="map-section">
+      <div class="container">
+        <div class="map-container">
+          <div id="map" style="height: 500px;"></div>
+          <div class="map-controls">
+            <div class="region-selector">
+              <select class="select" id="region-select">
+                <option value="">Toutes les régions</option>
+                <option value="IDF">Île-de-France</option>
+                <option value="ARA">Auvergne-Rhône-Alpes</option>
+                <option value="PACA">Provence-Alpes-Côte d'Azur</option>
+              </select>
             </div>
-            <div class="feature-item">
-              <div class="feature-icon">
-                <span class="icon icon-xl"><i class="material-icons">timer</i></span>
-              </div>
-              <h3 class="feature-title">Horaires</h3>
-              <p>Consultez les horaires en temps réel de vos lignes</p>
+            <div class="transport-filters">
+              <label class="checkbox">
+                <input type="checkbox" checked> Bus
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" checked> Tram
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" checked> Métro
+              </label>
             </div>
-            <div class="feature-item">
-              <div class="feature-icon">
-                <span class="icon icon-xl"><i class="material-icons">confirmation_number</i></span>
-              </div>
-              <h3 class="feature-title">M-Ticket</h3>
-              <p>Achetez et validez vos titres depuis l'application</p>
-            </div>
-          </div>
-          
-          <div class="app-download-buttons">
-            <a href="#" class="app-store-button" data-platform="ios">
-              <img src="https://placeholder.com/150x48?text=App+Store" alt="Télécharger sur l'App Store">
-            </a>
-            <a href="#" class="app-store-button" data-platform="android">
-              <img src="https://placeholder.com/150x48?text=Google+Play" alt="Télécharger sur Google Play">
-            </a>
           </div>
         </div>
       </div>
     </section>
-    
+
     <!-- Networks Section -->
-    <section class="networks" id="networks">
-      <div class="networks-container">
+    <section id="networks" class="networks">
+      <div class="container">
         <h2 class="networks-title">491 réseaux disponibles en France</h2>
         <p class="networks-subtitle">Trouvez votre réseau de transport et accédez à toutes les informations dont vous avez besoin.</p>
         
-        <!-- Exemple d'alertes -->
         <div class="alert alert-info">
           <div class="alert-container">
             <div class="alert-icon">
@@ -142,34 +122,20 @@
           </div>
         </div>
         
-        <!-- Chargement des réseaux populaires -->
         <div id="popular-networks" class="networks-grid">
+          <!-- Les réseaux seront chargés dynamiquement ici -->
           <div class="loading-spinner text-center">
             <span class="icon icon-lg icon-spin"><i class="material-icons">refresh</i></span>
             <p>Chargement des réseaux...</p>
           </div>
         </div>
-        
-        <!-- Bouton pour voir tous les réseaux -->
-        <div style="text-align: center; margin-top: var(--spacing-xl);">
-          <a href="/regions" class="btn btn-primary">Voir tous les réseaux</a>
-        </div>
-        
-        <!-- Carte des réseaux -->
-        <div class="networks-map">
-          <div style="text-align: center;">
-            <span class="icon icon-xl icon-muted"><i class="material-icons">map</i></span>
-            <p>Carte interactive des réseaux</p>
-            <p class="text-muted">Disponible dans l'application mobile</p>
-          </div>
-        </div>
       </div>
     </section>
-    
+
     <!-- Features Section -->
-    <section class="features">
-      <div class="features-container">
-        <h2 class="features-title">Pourquoi utiliser MyBus ?</h2>
+    <section id="features" class="features">
+      <div class="container">
+        <h2 class="text-center mb-xl">Pourquoi utiliser MyBus ?</h2>
         
         <div class="features-grid">
           <div class="feature-item">
@@ -195,216 +161,91 @@
             <h3 class="feature-title">M-Ticket</h3>
             <p>Achetez et validez vos titres de transport</p>
           </div>
-          
-          <div class="feature-item">
-            <div class="feature-icon">
-              <span class="icon icon-xl"><i class="material-icons">notifications</i></span>
-            </div>
-            <h3 class="feature-title">Alertes personnalisées</h3>
-            <p>Soyez informé des perturbations sur vos lignes</p>
-          </div>
-        </div>
-        
-        <div style="text-align: center; margin-top: var(--spacing-xl);">
-          <a href="#" class="btn btn-download">
-            <span class="icon icon-md icon-left"><i class="material-icons">download</i></span>
-            Télécharger l'application
-          </a>
         </div>
       </div>
     </section>
-    
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="footer-container">
-        <div>
-          <div class="footer-logo">MyBus</div>
-          <p>Votre application de transport en commun partout en France.</p>
-        </div>
-        
-        <div>
-          <h3 class="footer-section-title">Réseaux</h3>
-          <ul class="footer-links">
-            <li><a href="/regions">Voir tous les réseaux</a></li>
-            <li><a href="/region/ile-de-france/ratp">RATP Paris</a></li>
-            <li><a href="/region/auvergne-rhone-alpes/tcl">TCL Lyon</a></li>
-            <li><a href="/region/provence-alpes-cote-dazur/rtm">RTM Marseille</a></li>
-            <li><a href="/region/nouvelle-aquitaine/tbm">TBM Bordeaux</a></li>
-          </ul>
-        </div>
-        
-        <div>
-          <h3 class="footer-section-title">Application</h3>
-          <ul class="footer-links">
-            <li><a href="#" class="app-store-link" data-platform="ios">Télécharger sur l'App Store</a></li>
-            <li><a href="#" class="app-store-link" data-platform="android">Télécharger sur Google Play</a></li>
-            <li><a href="/fonctionnalites">Fonctionnalités</a></li>
-            <li><a href="/changelog">Changelog</a></li>
-          </ul>
-        </div>
-        
-        <div>
-          <h3 class="footer-section-title">Société</h3>
-          <ul class="footer-links">
-            <li><a href="/a-propos">À propos</a></li>
-            <li><a href="/blog">Blog</a></li>
-            <li><a href="/contact">Contact</a></li>
-            <li><a href="/recrutement">Recrutement</a></li>
-          </ul>
+
+    <!-- App Download Section -->
+    <section class="app-download">
+      <div class="container">
+        <div class="app-download-container">
+          <div class="app-download-content">
+            <h2 class="app-download-title">L'application MyBus</h2>
+            <div class="app-download-text">
+              <p>Avec MyBus, achetez et validez vos titres de transport directement depuis votre smartphone.</p>
+              <p>Plus besoin de faire la queue ou de chercher un distributeur, MyBus vous simplifie la vie !</p>
+            </div>
+            
+            <div class="app-store-buttons">
+              <a href="#" class="app-store-button" data-platform="ios">
+                <img src="https://placeholder.com/150x48?text=App+Store" alt="Télécharger sur l'App Store">
+              </a>
+              <a href="#" class="app-store-button" data-platform="android">
+                <img src="https://placeholder.com/150x48?text=Google+Play" alt="Télécharger sur Google Play">
+              </a>
+            </div>
+          </div>
+          <div class="app-download-image">
+            <img src="https://placeholder.com/300x600" alt="Application MyBus">
+          </div>
         </div>
       </div>
-      
-      <div class="footer-bottom">
-        <p>&copy; 2025 MyBus. Tous droits réservés.</p>
-        <p>
-          <a href="/mentions-legales">Mentions légales</a> | 
-          <a href="/confidentialite">Politique de confidentialité</a> | 
-          <a href="/cgv">CGV</a> | 
-          <a href="/cookies">Cookies</a>
-        </p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-container">
+          <div>
+            <div class="footer-logo">MyBus</div>
+            <p>Votre application de transport en commun partout en France.</p>
+          </div>
+          
+          <div>
+            <h3 class="footer-section-title">Réseaux</h3>
+            <ul class="footer-links">
+              <li><a href="/regions">Voir tous les réseaux</a></li>
+              <li><a href="/region/ile-de-france/ratp">RATP Paris</a></li>
+              <li><a href="/region/auvergne-rhone-alpes/tcl">TCL Lyon</a></li>
+              <li><a href="/region/provence-alpes-cote-dazur/rtm">RTM Marseille</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h3 class="footer-section-title">Application</h3>
+            <ul class="footer-links">
+              <li><a href="#" class="app-store-link" data-platform="ios">Télécharger sur l'App Store</a></li>
+              <li><a href="#" class="app-store-link" data-platform="android">Télécharger sur Google Play</a></li>
+              <li><a href="/fonctionnalites">Fonctionnalités</a></li>
+              <li><a href="/changelog">Changelog</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h3 class="footer-section-title">Société</h3>
+            <ul class="footer-links">
+              <li><a href="/a-propos">À propos</a></li>
+              <li><a href="/blog">Blog</a></li>
+              <li><a href="/contact">Contact</a></li>
+              <li><a href="/recrutement">Recrutement</a></li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="footer-bottom">
+          <p>&copy; 2025 MyBus. Tous droits réservés.</p>
+          <p>
+            <a href="/mentions-legales">Mentions légales</a> | 
+            <a href="/confidentialite">Politique de confidentialité</a> | 
+            <a href="/cgv">CGV</a> | 
+            <a href="/cookies">Cookies</a>
+          </p>
+        </div>
       </div>
     </footer>
   </div>
-  
+
   <!-- Scripts -->
-  <script src="assets/js/main.js" type="module"></script>
-  <script src="assets/js/components/searchbar.js"></script>
-  
-  <!-- Script pour charger les réseaux -->
-  <script type="module">
-    import MaaSifyAPI from './assets/js/services/api.js';
-    
-    document.addEventListener('DOMContentLoaded', async function() {
-      // Initialiser l'API pour quelques régions populaires
-      const regions = {
-        'ile-de-france': new MaaSifyAPI('ile-de-france'),
-        'auvergne-rhone-alpes': new MaaSifyAPI('auvergne-rhone-alpes'),
-        'provence-alpes-cote-dazur': new MaaSifyAPI('provence-alpes-cote-dazur')
-      };
-      
-      // Définir les réseaux populaires à afficher
-      const popularNetworks = [
-        { region: 'ile-de-france', name: 'RATP Paris', agencyId: 'IDF:RATP', color: '#64B5F6', modes: { metro: 14, tram: 8, bus: 350 } },
-        { region: 'auvergne-rhone-alpes', name: 'TCL Lyon', agencyId: 'ARA:TCL', color: '#81C784', modes: { metro: 4, tram: 5, bus: 120 } },
-        { region: 'provence-alpes-cote-dazur', name: 'RTM Marseille', agencyId: 'PACA:RTM', color: '#FFB74D', modes: { metro: 2, tram: 3, bus: 97 } }
-      ];
-      
-      try {
-        // Récupérer le conteneur
-        const networksContainer = document.getElementById('popular-networks');
-        if (!networksContainer) return;
-        
-        // Réinitialiser le contenu
-        networksContainer.innerHTML = '';
-        
-        // Charger les réseaux
-        for (const network of popularNetworks) {
-          try {
-            const region = regions[network.region];
-            if (!region) continue;
-            
-            // Simuler le chargement de l'agence (à remplacer par un vrai appel API)
-            // const agency = await region.getAgency(network.agencyId);
-            
-            // Créer la carte du réseau
-            const networkCard = createNetworkCard(network);
-            networksContainer.appendChild(networkCard);
-          } catch (error) {
-            console.error(`Erreur lors du chargement du réseau ${network.name}:`, error);
-          }
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement des réseaux:', error);
-        
-        // Afficher un message d'erreur
-        const networksContainer = document.getElementById('popular-networks');
-        if (networksContainer) {
-          networksContainer.innerHTML = `
-            <div class="alert alert-danger">
-              <div class="alert-container">
-                <div class="alert-icon">
-                  <span class="icon icon-md"><i class="material-icons">error</i></span>
-                </div>
-                <div class="alert-content">
-                  <div class="alert-title">Erreur</div>
-                  <div class="alert-message">Impossible de charger les réseaux. Veuillez réessayer ultérieurement.</div>
-                </div>
-              </div>
-            </div>
-          `;
-        }
-      }
-      
-      // Fonction pour créer une carte de réseau
-      function createNetworkCard(network) {
-        const card = document.createElement('div');
-        card.className = 'card network-card';
-        
-        // État du réseau (simulé)
-        const status = (Math.random() > 0.3) ? 
-          '<span class="network-card-status network-card-status-active"><span class="icon icon-xs"><i class="material-icons">check_circle</i></span>Actif</span>' : 
-          '<span class="network-card-status network-card-status-maintenance"><span class="icon icon-xs"><i class="material-icons">warning</i></span>Perturbations</span>';
-        
-        // Créer quelques badges de lignes (simulation)
-        let badges = '';
-        if (network.modes.metro) {
-          for (let i = 0; i < Math.min(4, network.modes.metro); i++) {
-            const label = ['1', '2', 'A', 'B'][i] || (i + 1);
-            badges += `<span class="badge badge-line badge-metro">${label}</span>`;
-          }
-        }
-        if (network.modes.tram) {
-          for (let i = 0; i < Math.min(3, network.modes.tram); i++) {
-            badges += `<span class="badge badge-line badge-tram">T${i + 1}</span>`;
-          }
-        }
-        if (network.modes.bus) {
-          for (let i = 0; i < Math.min(2, network.modes.bus); i++) {
-            const label = ['C3', 'C13'][i] || `${i + 1}`;
-            badges += `<span class="badge badge-line badge-bus">${label}</span>`;
-          }
-        }
-        
-        card.innerHTML = `
-          <div class="network-card-header">
-            <img src="https://placeholder.com/48" alt="Logo ${network.name}" class="network-card-logo">
-            <div>
-              <h3 class="network-card-title">${network.name}</h3>
-              <div class="network-card-subtitle">Réseau de transport en commun</div>
-            </div>
-            ${status}
-          </div>
-          <div class="network-card-body">
-            <div class="network-card-stats">
-              ${network.modes.metro ? `
-              <div class="network-card-stat">
-                <div class="network-card-stat-value">${network.modes.metro}</div>
-                <div class="network-card-stat-label">Métros</div>
-              </div>` : ''}
-              ${network.modes.tram ? `
-              <div class="network-card-stat">
-                <div class="network-card-stat-value">${network.modes.tram}</div>
-                <div class="network-card-stat-label">Tramways</div>
-              </div>` : ''}
-              ${network.modes.bus ? `
-              <div class="network-card-stat">
-                <div class="network-card-stat-value">${network.modes.bus}</div>
-                <div class="network-card-stat-label">Bus</div>
-              </div>` : ''}
-            </div>
-            <div class="network-card-lines">
-              ${badges}
-            </div>
-          </div>
-          <div class="network-card-footer">
-            <div class="network-card-footer-info">Dernière mise à jour: aujourd'hui</div>
-            <a href="/region/${network.region}/${network.agencyId.split(':')[1].toLowerCase()}" class="btn btn-tertiary">Voir</a>
-          </div>
-        `;
-        
-        return card;
-      }
-    });
-  </script>
+  <script type="module" src="/index.js"></script>
 </body>
 </html>
