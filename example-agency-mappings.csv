@@ -1,0 +1,6 @@
+ID Agence,Nom Agence,ID GTFS,ID Feed,Nom d'affichage,Nom du réseau
+SNCF:SNCF,SNCF,SNCF:SNCF,sncf-gtfs,SNCF,Réseau ferroviaire national
+RATP:RATP,RATP,RATP:RATP,idfm-gtfs,RATP,Réseau RATP
+IDFM:IDFM,Île-de-France Mobilités,IDFM:IDFM,idfm-gtfs,IDF Mobilités,Réseau Île-de-France
+TCL:TCL,TCL,TCL:TCL,ara-gtfs,TCL,Réseau TCL Lyon
+RTM:RTM,RTM,RTM:RTM,paca-gtfs,RTM,Réseau RTM Marseille
