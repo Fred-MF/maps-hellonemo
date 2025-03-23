@@ -67,6 +67,7 @@ const LinesList: React.FC<LinesListProps> = ({
           </h3>
           <p className="mt-2 text-sm text-gray-500">
             Nous n'avons trouvé aucune ligne de transport pour cet opérateur.
+            <br />
             Cela peut être dû à une mise à jour des données en cours ou à une indisponibilité temporaire du service.
           </p>
         </div>

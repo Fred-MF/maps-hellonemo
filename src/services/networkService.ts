@@ -76,7 +76,15 @@ export const networkService = {
       if (!region) throw new Error('Région non trouvée');
 
       const apiClient = createApiClient(region.apiUrl);
-      const routes = await apiClient.getRoutesByAgency(operatorId);
+      
+      // Formater l'ID de l'opérateur correctement
+      const formattedOperatorId = operatorId.includes(':') 
+        ? operatorId.split(':').slice(-2).join(':') // Prendre les 2 derniers segments
+        : `${regionId}:${operatorId}`;
+
+      console.log('Récupération des routes pour:', formattedOperatorId);
+      const routes = await apiClient.getRoutesByAgency(formattedOperatorId);
+      console.log('Routes récupérées:', routes);
 
       // Trier les routes par nom court
       return routes.sort((a, b) => {
@@ -115,6 +123,52 @@ export const networkService = {
     } catch (error) {
       console.error('Erreur lors de la récupération des détails de la route:', error);
       return null;
+    }
+  },
+
+  // Exporter les réseaux au format CSV
+  async exportNetworksToCSV(): Promise<string> {
+    try {
+      const networks = await this.getAllNetworks();
+      
+      // En-têtes du CSV
+      const headers = [
+        'ID',
+        'Nom',
+        "Nom d'affichage",
+        'Région',
+        'Disponible',
+        'Dernière vérification',
+        'Message d\'erreur',
+        'Opérateurs'
+      ].join(',');
+
+      // Lignes de données
+      const rows = networks.map(network => {
+        const operatorNames = network.operators
+          ? network.operators
+              .filter(op => op.is_active)
+              .map(op => op.name)
+              .join(';')
+          : '';
+
+        return [
+          network.id,
+          `"${network.name}"`,
+          network.display_name ? `"${network.display_name}"` : '',
+          network.region_id,
+          network.is_available ? 'Oui' : 'Non',
+          network.last_check ? new Date(network.last_check).toLocaleString('fr-FR') : '',
+          network.error_message ? `"${network.error_message}"` : '',
+          operatorNames ? `"${operatorNames}"` : ''
+        ].join(',');
+      });
+
+      // Combiner les en-têtes et les lignes
+      return [headers, ...rows].join('\n');
+    } catch (error) {
+      console.error('Erreur lors de l\'export CSV:', error);
+      throw new Error('Erreur lors de l\'export des réseaux');
     }
   }
 };

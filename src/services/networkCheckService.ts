@@ -84,34 +84,38 @@ export const networkCheckService = {
       }
 
       // Marquer comme indisponibles les réseaux qui n'ont pas été trouvés dans l'API
-      const { error: updateError } = await supabase
-        .from('networks')
-        .update({
-          is_available: false,
-          last_check: new Date().toISOString(),
-          error_message: 'Réseau non trouvé lors de la dernière vérification'
-        })
-        .eq('region_id', region.id)
-        .not('id', 'in', `(${Array.from(processedNetworkIds).map(id => `'${id}'`).join(',')})`);
+      if (processedNetworkIds.size > 0) {
+        const { error: updateError } = await supabase
+          .from('networks')
+          .update({
+            is_available: false,
+            last_check: new Date().toISOString(),
+            error_message: 'Réseau non trouvé lors de la dernière vérification'
+          })
+          .eq('region_id', region.id)
+          .not('id', 'in', `(${Array.from(processedNetworkIds).map(id => `'${id}'`).join(',')})`);
 
-      if (updateError) {
-        console.error('Erreur lors de la mise à jour des réseaux inactifs:', updateError);
-      }
+        if (updateError) {
+          console.error('Erreur lors de la mise à jour des réseaux inactifs:', updateError);
+          errors.push(`Erreur lors de la désactivation des réseaux: ${updateError.message}`);
+        }
 
-      // Désactiver les opérateurs des réseaux non trouvés
-      const { error: operatorUpdateError } = await supabase
-        .from('operators')
-        .update({ is_active: false })
-        .eq('network_id', 'in', (
-          supabase
-            .from('networks')
-            .select('id')
-            .eq('region_id', region.id)
-            .eq('is_available', false)
-        ));
+        // Désactiver les opérateurs des réseaux non trouvés
+        const { error: operatorUpdateError } = await supabase
+          .from('operators')
+          .update({ is_active: false })
+          .eq('network_id', 'in', (
+            supabase
+              .from('networks')
+              .select('id')
+              .eq('region_id', region.id)
+              .eq('is_available', false)
+          ));
 
-      if (operatorUpdateError) {
-        console.error('Erreur lors de la mise à jour des opérateurs inactifs:', operatorUpdateError);
+        if (operatorUpdateError) {
+          console.error('Erreur lors de la mise à jour des opérateurs inactifs:', operatorUpdateError);
+          errors.push(`Erreur lors de la désactivation des opérateurs: ${operatorUpdateError.message}`);
+        }
       }
 
       return {
