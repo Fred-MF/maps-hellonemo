@@ -46,29 +46,8 @@ const NetworkList: React.FC = () => {
     }
   };
 
-  const getModeIcon = (mode: string) => {
-    switch (mode) {
-      case TransitMode.RAIL:
-      case TransitMode.SUBWAY:
-        return <Train size={16} />;
-      case TransitMode.BUS:
-      case TransitMode.COACH:
-        return <Bus size={16} />;
-      case TransitMode.TRAM:
-        return <Tram size={16} />;
-      case TransitMode.FERRY:
-        return <Ship size={16} />;
-      case TransitMode.CABLE_CAR:
-      case TransitMode.GONDOLA:
-      case TransitMode.FUNICULAR:
-        return <Cable size={16} />;
-      default:
-        return <Bus size={16} />;
-    }
-  };
-
   const filteredNetworks = networks.filter(network =>
-    (network.display_name || network.name).toLowerCase().includes(searchTerm.toLowerCase())
+    (network.display_name || network.feed_id).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (isLoading) {
@@ -164,7 +143,7 @@ const NetworkList: React.FC = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <h2 className="text-lg font-medium text-gray-900">
-                    {network.display_name || network.name}
+                    {network.display_name || network.feed_id}
                   </h2>
                   <div className="mt-1 text-sm text-gray-500">
                     {network.operators?.length || 0} opérateur{network.operators?.length !== 1 ? 's' : ''}
@@ -200,7 +179,7 @@ const NetworkList: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {operator.name}
+                            {operator.display_name || operator.name}
                           </div>
                           <div className="text-sm text-gray-500">{operator.gtfs_id}</div>
                         </div>

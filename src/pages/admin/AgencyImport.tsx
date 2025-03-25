@@ -12,11 +12,14 @@ const AgencyImport: React.FC = () => {
   const [checkResults, setCheckResults] = useState<any>(null);
 
   // Récupérer les réseaux de la région sélectionnée
-  const { data: networks, isLoading, refetch } = useQuery(
+  const { data: networks = [], isLoading, refetch } = useQuery(
     ['networks', selectedRegion?.id],
-    () => selectedRegion ? networkService.getNetworksByRegion(selectedRegion.id) : null,
+    () => selectedRegion ? networkService.getNetworksByRegion(selectedRegion.id) : Promise.resolve([]),
     {
-      enabled: !!selectedRegion
+      enabled: !!selectedRegion,
+      refetchOnWindowFocus: false,
+      staleTime: 0,
+      cacheTime: 0
     }
   );
 
@@ -101,7 +104,7 @@ const AgencyImport: React.FC = () => {
             </div>
           )}
 
-          {networks?.length === 0 && !isLoading && !checkResults && (
+          {networks.length === 0 && !isLoading && !checkResults && selectedRegion && (
             <div className="flex items-center p-4 bg-yellow-50 text-yellow-700 rounded-lg">
               <AlertTriangle className="h-5 w-5 mr-2" />
               <span>
@@ -137,7 +140,7 @@ const AgencyImport: React.FC = () => {
             </div>
           )}
 
-          {networks && networks.length > 0 && (
+          {networks.length > 0 && (
             <div className="mt-4">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 Réseaux importés ({networks.length})

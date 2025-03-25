@@ -28,10 +28,8 @@ export interface Feed {
 
 export interface Network {
   id: string;
-  name: string;
-  display_name: string | null;
-  gtfs_id: string;
   feed_id: string;
+  display_name: string | null;
   region_id: string;
   is_available: boolean;
   last_check: string | null;
@@ -44,7 +42,9 @@ export interface Network {
 export interface Operator {
   id: string;
   network_id: string;
+  agency_id: string;
   name: string;
+  display_name: string | null;
   gtfs_id: string;
   is_active: boolean;
 }

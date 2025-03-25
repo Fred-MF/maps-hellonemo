@@ -24,7 +24,7 @@ const NetworkFilter: React.FC<NetworkFilterProps> = ({
     networks
       .filter(network => network.is_available)
       .forEach(network => {
-        const key = network.display_name?.toLowerCase() || network.name.toLowerCase();
+        const key = network.display_name?.toLowerCase() || network.feed_id.toLowerCase();
         
         if (!networkMap.has(key)) {
           networkMap.set(key, {
@@ -48,7 +48,7 @@ const NetworkFilter: React.FC<NetworkFilterProps> = ({
 
     // Fonction pour déterminer si un réseau est régional
     const isRegionalNetwork = (network: Network) => {
-      const name = (network.display_name || network.name).toLowerCase();
+      const name = (network.display_name || network.feed_id).toLowerCase();
       return name.includes('région') || 
              name.includes('regional') || 
              name.includes('départemental') ||
@@ -60,11 +60,11 @@ const NetworkFilter: React.FC<NetworkFilterProps> = ({
     // Séparer les réseaux en deux groupes
     const regional = allNetworks
       .filter(isRegionalNetwork)
-      .sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name));
+      .sort((a, b) => (a.display_name || a.feed_id).localeCompare(b.display_name || b.feed_id));
 
     const urban = allNetworks
       .filter(n => !isRegionalNetwork(n))
-      .sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name));
+      .sort((a, b) => (a.display_name || a.feed_id).localeCompare(b.display_name || b.feed_id));
 
     return {
       regionalNetworks: regional,
@@ -77,7 +77,7 @@ const NetworkFilter: React.FC<NetworkFilterProps> = ({
     
     // Si le réseau a plusieurs opérateurs, naviguer vers la page de détail du réseau
     if (network.operators && network.operators.length > 1) {
-      const networkName = encodeURIComponent((network.display_name || network.name).replace(/\s+/g, '-').toLowerCase());
+      const networkName = encodeURIComponent((network.display_name || network.feed_id).replace(/\s+/g, '-').toLowerCase());
       navigate(`/reseau/${networkName}?region=${network.region_id}`);
     }
   };
@@ -96,7 +96,7 @@ const NetworkFilter: React.FC<NetworkFilterProps> = ({
     >
       <div className="flex items-center justify-between">
         <div className="truncate flex-1">
-          <div className="font-medium truncate">{network.display_name || network.name}</div>
+          <div className="font-medium truncate">{network.display_name || network.feed_id}</div>
         </div>
         {network.operators && network.operators.length > 0 && (
           <div className="flex items-center">
@@ -153,4 +153,4 @@ const NetworkFilter: React.FC<NetworkFilterProps> = ({
   );
 };
 
-export default NetworkFilter;
+export default NetworkFilter

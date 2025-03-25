@@ -11,7 +11,7 @@ export const networkService = {
         .from('networks')
         .select(`
           id,
-          name,
+          feed_id,
           display_name,
           region_id,
           is_available,
@@ -19,14 +19,14 @@ export const networkService = {
           error_message,
           operators (
             id,
+            agency_id,
             name,
+            display_name,
             gtfs_id,
-            feed_id,
             is_active
           )
         `)
-        .eq('is_available', true)
-        .order('name');
+        .order('feed_id');
 
       if (error) throw error;
       return data || [];
@@ -43,7 +43,7 @@ export const networkService = {
         .from('networks')
         .select(`
           id,
-          name,
+          feed_id,
           display_name,
           region_id,
           is_available,
@@ -51,15 +51,15 @@ export const networkService = {
           error_message,
           operators (
             id,
+            agency_id,
             name,
+            display_name,
             gtfs_id,
-            feed_id,
             is_active
           )
         `)
         .eq('region_id', regionId)
-        .eq('is_available', true)
-        .order('name');
+        .order('feed_id');
 
       if (error) throw error;
       return data || [];
@@ -133,35 +133,63 @@ export const networkService = {
       
       // En-têtes du CSV
       const headers = [
-        'ID',
-        'Nom',
-        "Nom d'affichage",
-        'Région',
-        'Disponible',
-        'Dernière vérification',
-        'Message d\'erreur',
-        'Opérateurs'
+        'networks/id',
+        'networks/feed_id',
+        'networks/display_name',
+        'networks/region_id',
+        'networks/is_available',
+        'networks/last_check',
+        'networks/error_message',
+        'operators/id',
+        'operators/agency_id',
+        'operators/name',
+        'operators/display_name',
+        'operators/gtfs_id',
+        'operators/is_active'
       ].join(',');
 
       // Lignes de données
-      const rows = networks.map(network => {
-        const operatorNames = network.operators
-          ? network.operators
-              .filter(op => op.is_active)
-              .map(op => op.name)
-              .join(';')
-          : '';
-
-        return [
-          network.id,
-          `"${network.name}"`,
-          network.display_name ? `"${network.display_name}"` : '',
-          network.region_id,
-          network.is_available ? 'Oui' : 'Non',
-          network.last_check ? new Date(network.last_check).toLocaleString('fr-FR') : '',
-          network.error_message ? `"${network.error_message}"` : '',
-          operatorNames ? `"${operatorNames}"` : ''
-        ].join(',');
+      const rows: string[] = [];
+      
+      // Pour chaque réseau, créer une ligne par opérateur
+      networks.forEach(network => {
+        if (network.operators && network.operators.length > 0) {
+          // Une ligne par opérateur
+          network.operators.forEach(operator => {
+            rows.push([
+              network.id,
+              network.feed_id,
+              network.display_name ? `"${network.display_name}"` : '',
+              network.region_id,
+              network.is_available ? 'true' : 'false',
+              network.last_check ? new Date(network.last_check).toLocaleString('fr-FR') : '',
+              network.error_message ? `"${network.error_message}"` : '',
+              operator.id,
+              operator.agency_id,
+              `"${operator.name}"`,
+              operator.display_name ? `"${operator.display_name}"` : '',
+              operator.gtfs_id,
+              operator.is_active ? 'true' : 'false'
+            ].join(','));
+          });
+        } else {
+          // Réseau sans opérateur
+          rows.push([
+            network.id,
+            network.feed_id,
+            network.display_name ? `"${network.display_name}"` : '',
+            network.region_id,
+            network.is_available ? 'true' : 'false',
+            network.last_check ? new Date(network.last_check).toLocaleString('fr-FR') : '',
+            network.error_message ? `"${network.error_message}"` : '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            ''
+          ].join(','));
+        }
       });
 
       // Combiner les en-têtes et les lignes

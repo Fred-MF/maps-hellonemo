@@ -25,6 +25,7 @@ export const networkCheckService = {
       let total = 0;
       const errors: string[] = [];
       const processedNetworkIds = new Set<string>();
+      const processedOperatorIds = new Set<string>();
 
       // Pour chaque feed, récupérer et traiter les agences
       for (const feed of feeds) {
@@ -32,49 +33,53 @@ export const networkCheckService = {
           const agencies = await apiClient.getAgenciesByFeed(feed.feedId);
           total += agencies.length;
 
-          // Pour chaque agence, créer ou mettre à jour le réseau correspondant
+          // Créer ou mettre à jour le réseau
+          const networkId = `${region.id}:${feed.feedId}`;
+          processedNetworkIds.add(networkId);
+
+          const { data: network, error: networkError } = await supabase
+            .from('networks')
+            .upsert({
+              id: networkId,
+              feed_id: feed.feedId,
+              region_id: region.id,
+              is_available: true,
+              last_check: new Date().toISOString(),
+              error_message: null
+            })
+            .select()
+            .single();
+
+          if (networkError) throw networkError;
+
+          // Pour chaque agence, créer ou mettre à jour l'opérateur
           for (const agency of agencies) {
             try {
-              const networkId = `${region.id}:${agency.gtfsId}`;
-              processedNetworkIds.add(networkId);
-
-              // Créer ou mettre à jour le réseau
-              const { data: network, error: networkError } = await supabase
-                .from('networks')
-                .upsert({
-                  id: networkId,
-                  name: agency.name,
-                  gtfs_id: agency.gtfsId,
-                  feed_id: feed.feedId,
-                  region_id: region.id,
-                  is_available: true,
-                  last_check: new Date().toISOString(),
-                  error_message: null
-                })
-                .select()
-                .single();
-
-              if (networkError) throw networkError;
-              if (network) imported++;
-
               // Créer ou mettre à jour l'opérateur
-              const { error: operatorError } = await supabase
+              const { data: operator, error: operatorError } = await supabase
                 .from('operators')
                 .upsert({
                   network_id: networkId,
+                  agency_id: agency.id,
                   name: agency.name,
+                  display_name: agency.name,
                   gtfs_id: agency.gtfsId,
-                  feed_id: feed.feedId,
                   is_active: true
                 }, {
                   onConflict: 'network_id,gtfs_id'
-                });
+                })
+                .select('id')
+                .single();
 
               if (operatorError) throw operatorError;
+              if (operator) {
+                processedOperatorIds.add(operator.id);
+                imported++;
+              }
 
             } catch (error) {
-              console.error('Erreur lors du traitement du réseau:', error);
-              errors.push(`Erreur pour le réseau ${agency.name}: ${error.message}`);
+              console.error('Erreur lors du traitement de l\'agence:', error);
+              errors.push(`Erreur pour l'agence ${agency.name}: ${error.message}`);
             }
           }
         } catch (error) {
@@ -83,9 +88,31 @@ export const networkCheckService = {
         }
       }
 
+      // Désactiver les opérateurs qui n'ont pas été trouvés dans l'API
+      if (processedOperatorIds.size > 0) {
+        const operatorIds = Array.from(processedOperatorIds);
+        const networkIds = Array.from(processedNetworkIds);
+
+        // Mettre à jour les opérateurs par lots de 100 pour éviter les problèmes de longueur de requête
+        for (let i = 0; i < networkIds.length; i += 100) {
+          const networkBatch = networkIds.slice(i, i + 100);
+          const { error: updateOperatorsError } = await supabase
+            .from('operators')
+            .update({ is_active: false })
+            .in('network_id', networkBatch)
+            .not('id', 'in', operatorIds);
+
+          if (updateOperatorsError) {
+            console.error('Erreur lors de la désactivation des opérateurs:', updateOperatorsError);
+            errors.push(`Erreur lors de la désactivation des opérateurs: ${updateOperatorsError.message}`);
+          }
+        }
+      }
+
       // Marquer comme indisponibles les réseaux qui n'ont pas été trouvés dans l'API
       if (processedNetworkIds.size > 0) {
-        const { error: updateError } = await supabase
+        const networkIds = Array.from(processedNetworkIds);
+        const { error: updateNetworksError } = await supabase
           .from('networks')
           .update({
             is_available: false,
@@ -93,28 +120,11 @@ export const networkCheckService = {
             error_message: 'Réseau non trouvé lors de la dernière vérification'
           })
           .eq('region_id', region.id)
-          .not('id', 'in', `(${Array.from(processedNetworkIds).map(id => `'${id}'`).join(',')})`);
+          .not('id', 'in', networkIds);
 
-        if (updateError) {
-          console.error('Erreur lors de la mise à jour des réseaux inactifs:', updateError);
-          errors.push(`Erreur lors de la désactivation des réseaux: ${updateError.message}`);
-        }
-
-        // Désactiver les opérateurs des réseaux non trouvés
-        const { error: operatorUpdateError } = await supabase
-          .from('operators')
-          .update({ is_active: false })
-          .eq('network_id', 'in', (
-            supabase
-              .from('networks')
-              .select('id')
-              .eq('region_id', region.id)
-              .eq('is_available', false)
-          ));
-
-        if (operatorUpdateError) {
-          console.error('Erreur lors de la mise à jour des opérateurs inactifs:', operatorUpdateError);
-          errors.push(`Erreur lors de la désactivation des opérateurs: ${operatorUpdateError.message}`);
+        if (updateNetworksError) {
+          console.error('Erreur lors de la mise à jour des réseaux inactifs:', updateNetworksError);
+          errors.push(`Erreur lors de la désactivation des réseaux: ${updateNetworksError.message}`);
         }
       }
 
