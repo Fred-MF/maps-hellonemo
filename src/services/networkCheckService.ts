@@ -2,6 +2,8 @@ import { supabase } from '../lib/supabase';
 import { createApiClient } from './api';
 import { regions } from '../data/regions';
 
+const BATCH_SIZE = 50; // Process 50 items at a time
+
 export const networkCheckService = {
   // Vérifier tous les réseaux d'une région
   async checkAllNetworks(regionId: string) {
@@ -55,14 +57,12 @@ export const networkCheckService = {
           // Pour chaque agence, créer ou mettre à jour l'opérateur
           for (const agency of agencies) {
             try {
-              // Créer ou mettre à jour l'opérateur
               const { data: operator, error: operatorError } = await supabase
                 .from('operators')
                 .upsert({
                   network_id: networkId,
                   agency_id: agency.id,
                   name: agency.name,
-                  display_name: agency.name,
                   gtfs_id: agency.gtfsId,
                   is_active: true
                 }, {
@@ -93,9 +93,9 @@ export const networkCheckService = {
         const operatorIds = Array.from(processedOperatorIds);
         const networkIds = Array.from(processedNetworkIds);
 
-        // Mettre à jour les opérateurs par lots de 100 pour éviter les problèmes de longueur de requête
-        for (let i = 0; i < networkIds.length; i += 100) {
-          const networkBatch = networkIds.slice(i, i + 100);
+        // Traiter les opérateurs par lots
+        for (let i = 0; i < networkIds.length; i += BATCH_SIZE) {
+          const networkBatch = networkIds.slice(i, i + BATCH_SIZE);
           const { error: updateOperatorsError } = await supabase
             .from('operators')
             .update({ is_active: false })
@@ -112,19 +112,24 @@ export const networkCheckService = {
       // Marquer comme indisponibles les réseaux qui n'ont pas été trouvés dans l'API
       if (processedNetworkIds.size > 0) {
         const networkIds = Array.from(processedNetworkIds);
-        const { error: updateNetworksError } = await supabase
-          .from('networks')
-          .update({
-            is_available: false,
-            last_check: new Date().toISOString(),
-            error_message: 'Réseau non trouvé lors de la dernière vérification'
-          })
-          .eq('region_id', region.id)
-          .not('id', 'in', networkIds);
+        
+        // Traiter les réseaux par lots
+        for (let i = 0; i < networkIds.length; i += BATCH_SIZE) {
+          const networkBatch = networkIds.slice(i, i + BATCH_SIZE);
+          const { error: updateNetworksError } = await supabase
+            .from('networks')
+            .update({
+              is_available: false,
+              last_check: new Date().toISOString(),
+              error_message: 'Réseau non trouvé lors de la dernière vérification'
+            })
+            .eq('region_id', region.id)
+            .not('id', 'in', networkBatch);
 
-        if (updateNetworksError) {
-          console.error('Erreur lors de la mise à jour des réseaux inactifs:', updateNetworksError);
-          errors.push(`Erreur lors de la désactivation des réseaux: ${updateNetworksError.message}`);
+          if (updateNetworksError) {
+            console.error('Erreur lors de la mise à jour des réseaux inactifs:', updateNetworksError);
+            errors.push(`Erreur lors de la désactivation des réseaux: ${updateNetworksError.message}`);
+          }
         }
       }
 

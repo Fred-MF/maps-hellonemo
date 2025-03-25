@@ -39,7 +39,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
               network && !operator ? 'bg-blue-100 text-blue-800 font-medium' : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            {network ? network.display_name || network.name : 'Sélectionner un réseau'}
+            {network ? network.display_name || network.feed_id : 'Sélectionner un réseau'}
           </button>
         </>
       )}
@@ -53,7 +53,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
               operator ? 'bg-blue-100 text-blue-800 font-medium' : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            {operator ? operator.name : 'Sélectionner un opérateur'}
+            {operator ? operator.display_name || operator.name : 'Sélectionner un opérateur'}
           </button>
         </>
       )}

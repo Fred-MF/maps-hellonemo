@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Operator } from '../types/api';
 import { Bus } from 'lucide-react';
 
@@ -13,15 +13,24 @@ const OperatorFilter: React.FC<OperatorFilterProps> = ({
   selectedOperator,
   onSelectOperator
 }) => {
-  // Dédoublonner les opérateurs par ID
-  const uniqueOperators = React.useMemo(() => {
-    const operatorMap = new Map<string, Operator>();
-    operators.forEach(operator => {
-      if (!operatorMap.has(operator.id)) {
-        operatorMap.set(operator.id, operator);
-      }
-    });
-    return Array.from(operatorMap.values());
+  // Grouper les opérateurs par display_name
+  const uniqueOperators = useMemo(() => {
+    const operatorGroups = new Map<string, Operator[]>();
+    
+    operators
+      .filter(operator => operator.is_active)
+      .forEach(operator => {
+        const key = operator.display_name || operator.name;
+        if (!operatorGroups.has(key)) {
+          operatorGroups.set(key, []);
+        }
+        operatorGroups.get(key)!.push(operator);
+      });
+
+    // Prendre le premier opérateur de chaque groupe comme représentant
+    return Array.from(operatorGroups.values())
+      .map(group => group[0])
+      .sort((a, b) => (a.display_name || a.name).localeCompare(b.display_name || b.name));
   }, [operators]);
 
   return (
@@ -40,7 +49,7 @@ const OperatorFilter: React.FC<OperatorFilterProps> = ({
           >
             <div className="flex items-center">
               <Bus className="h-5 w-5 mr-2" />
-              <div className="font-medium">{operator.name}</div>
+              <div className="font-medium">{operator.display_name || operator.name}</div>
             </div>
           </button>
         ))}

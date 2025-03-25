@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
-import { Network } from '../types/api';
+import { Network, Operator } from '../types/api';
 import { Building2, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 interface NetworkFilterProps {
   networks: Network[];
@@ -14,15 +13,27 @@ const NetworkFilter: React.FC<NetworkFilterProps> = ({
   selectedNetwork,
   onSelectNetwork
 }) => {
-  const navigate = useNavigate();
-
   // Dédupliquer et grouper les réseaux par type (régional/urbain)
   const { regionalNetworks, urbanNetworks } = useMemo(() => {
     const networkMap = new Map<string, Network>();
     
-    // Traiter uniquement les réseaux disponibles
+    // Traiter uniquement les réseaux disponibles avec au moins un opérateur actif
     networks
-      .filter(network => network.is_available)
+      .filter(network => {
+        // Grouper les opérateurs actifs par display_name
+        const operatorGroups = new Map<string, Operator[]>();
+        network.operators?.forEach(op => {
+          if (op.is_active) {
+            const key = op.display_name || op.name;
+            if (!operatorGroups.has(key)) {
+              operatorGroups.set(key, []);
+            }
+            operatorGroups.get(key)!.push(op);
+          }
+        });
+        
+        return network.is_available && operatorGroups.size > 0;
+      })
       .forEach(network => {
         const key = network.display_name?.toLowerCase() || network.feed_id.toLowerCase();
         
@@ -35,10 +46,24 @@ const NetworkFilter: React.FC<NetworkFilterProps> = ({
 
         const existingNetwork = networkMap.get(key)!;
         
-        // Fusionner les opérateurs
-        network.operators?.forEach(operator => {
-          if (!existingNetwork.operators?.some(existing => existing.id === operator.id)) {
-            existingNetwork.operators = [...(existingNetwork.operators || []), operator];
+        // Grouper les opérateurs actifs par display_name
+        const operatorGroups = new Map<string, Operator[]>();
+        network.operators?.forEach(op => {
+          if (op.is_active) {
+            const key = op.display_name || op.name;
+            if (!operatorGroups.has(key)) {
+              operatorGroups.set(key, []);
+            }
+            operatorGroups.get(key)!.push(op);
+          }
+        });
+
+        // Ne garder qu'un seul opérateur par groupe
+        operatorGroups.forEach((operators, displayName) => {
+          if (!existingNetwork.operators?.some(existing => (existing.display_name || existing.name) === displayName)) {
+            // Utiliser le premier opérateur du groupe comme représentant
+            const representative = operators[0];
+            existingNetwork.operators = [...(existingNetwork.operators || []), representative];
           }
         });
       });
@@ -75,52 +100,58 @@ const NetworkFilter: React.FC<NetworkFilterProps> = ({
   const handleNetworkClick = (network: Network) => {
     onSelectNetwork(network);
     
-    // Si le réseau a plusieurs opérateurs, naviguer vers la page de détail du réseau
-    if (network.operators && network.operators.length > 1) {
-      const networkName = encodeURIComponent((network.display_name || network.feed_id).replace(/\s+/g, '-').toLowerCase());
-      navigate(`/reseau/${networkName}?region=${network.region_id}`);
+    // Trouver le premier opérateur actif
+    const firstOperator = network.operators?.find(op => op.is_active);
+    if (firstOperator) {
+      // Sélectionner automatiquement le premier opérateur
+      onSelectNetwork({
+        ...network,
+        operators: [firstOperator]
+      });
     }
   };
 
-  const renderNetworkButton = (network: Network) => (
-    <button
-      key={network.id}
-      onClick={() => handleNetworkClick(network)}
-      className={`
-        p-3 rounded-lg text-left transition-colors
-        ${selectedNetwork?.id === network.id
-          ? 'bg-green-600 text-white ring-2 ring-offset-2 ring-green-600'
-          : 'bg-white hover:bg-green-50 border border-gray-200'
-        }
-      `}
-    >
-      <div className="flex items-center justify-between">
-        <div className="truncate flex-1">
-          <div className="font-medium truncate">{network.display_name || network.feed_id}</div>
-        </div>
-        {network.operators && network.operators.length > 0 && (
-          <div className="flex items-center">
-            <div className={`
-              text-xs px-2 py-1 rounded-full
-              ${selectedNetwork?.id === network.id
-                ? 'bg-green-500 text-white'
-                : 'bg-gray-100 text-gray-600'
-              }
-            `}>
-              {network.operators.length} op.
-            </div>
-            {network.operators.length > 1 && (
-              <ChevronRight className={`ml-2 h-4 w-4 ${
-                selectedNetwork?.id === network.id
-                  ? 'text-white'
-                  : 'text-gray-400'
-              }`} />
-            )}
+  const renderNetworkButton = (network: Network) => {
+    // Compter les opérateurs uniques par display_name
+    const uniqueOperators = new Set(
+      network.operators
+        ?.filter(op => op.is_active)
+        .map(op => op.display_name || op.name)
+    );
+    
+    return (
+      <button
+        key={network.id}
+        onClick={() => handleNetworkClick(network)}
+        className={`
+          p-3 rounded-lg text-left transition-colors
+          ${selectedNetwork?.id === network.id
+            ? 'bg-green-600 text-white ring-2 ring-offset-2 ring-green-600'
+            : 'bg-white hover:bg-green-50 border border-gray-200'
+          }
+        `}
+      >
+        <div className="flex items-center justify-between">
+          <div className="truncate flex-1">
+            <div className="font-medium truncate">{network.display_name || network.feed_id}</div>
           </div>
-        )}
-      </div>
-    </button>
-  );
+          {uniqueOperators.size > 0 && (
+            <div className="flex items-center">
+              <div className={`
+                text-xs px-2 py-1 rounded-full
+                ${selectedNetwork?.id === network.id
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-100 text-gray-600'
+                }
+              `}>
+                {uniqueOperators.size} op.
+              </div>
+            </div>
+          )}
+        </div>
+      </button>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -153,4 +184,4 @@ const NetworkFilter: React.FC<NetworkFilterProps> = ({
   );
 };
 
-export default NetworkFilter
+export default NetworkFilter;
