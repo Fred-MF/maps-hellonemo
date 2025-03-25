@@ -1,150 +1,91 @@
 import { supabase } from '../lib/supabase';
-import { createApiClient } from './api';
-import { regions } from '../data/regions';
+import Papa from 'papaparse';
 
-export const networkCheckService = {
-  // Vérifier tous les réseaux d'une région
-  async checkAllNetworks(regionId: string) {
+export const networkImportService = {
+  async importNetworks(file: File) {
     try {
-      console.log('Vérification des réseaux pour la région:', regionId);
+      // Parse CSV file
+      const results = await new Promise<Papa.ParseResult<any>>((resolve, reject) => {
+        Papa.parse(file, {
+          header: true,
+          skipEmptyLines: true,
+          complete: resolve,
+          error: reject
+        });
+      });
 
-      // Récupérer la région
-      const region = regions.find(r => r.id === regionId);
-      if (!region) {
-        throw new Error('Région non trouvée');
+      if (!results.data || results.data.length === 0) {
+        throw new Error('Le fichier CSV est vide');
       }
 
-      // Créer le client API
-      const apiClient = createApiClient(region.apiUrl);
-
-      // Récupérer tous les feeds disponibles
-      const feeds = await apiClient.getFeeds();
-      console.log('Feeds récupérés:', feeds.length);
-
       let imported = 0;
-      let total = 0;
-      const errors: string[] = [];
-      const processedNetworkIds = new Set<string>();
-      const processedOperatorIds = new Set<string>();
+      const warnings: string[] = [];
+      const total = results.data.length;
 
-      // Pour chaque feed, récupérer et traiter les agences
-      for (const feed of feeds) {
+      // Process each row
+      for (const row of results.data) {
         try {
-          // Utilisation du client API corrigé qui retourne directement un tableau d'agences
-          const agencies = await apiClient.getAgenciesByFeed(feed.feedId);
-          total += agencies.length;
-          console.log(`Traitement du feed ${feed.feedId} avec ${agencies.length} agences`);
+          // Extract network data from the CSV columns
+          const networkId = row['networks/id'];
+          const feedId = row['networks/feed_id'];
+          const displayName = row['networks/display_name'];
+          const regionId = row['networks/region_id'];
+          const isAvailable = row['networks/is_available'] === 'TRUE';
+          
+          // Extract operator data
+          const operatorId = row['operators/id'];
+          const agencyId = row['operators/agency_id'];
+          const operatorName = row['operators/name'];
+          const operatorDisplayName = row['operators/display_name'];
+          const operatorGtfsId = row['operators/gtfs_id'];
+          const operatorIsActive = row['operators/is_active'] === 'TRUE';
 
-          // Créer ou mettre à jour le réseau
-          const networkId = `${region.id}:${feed.feedId}`;
-          processedNetworkIds.add(networkId);
+          // Validate required fields
+          if (!networkId || !feedId || !regionId || !operatorName || !operatorGtfsId) {
+            warnings.push(`Ligne ignorée: champs requis manquants pour l'opérateur ${operatorName || 'sans nom'}`);
+            continue;
+          }
 
+          // Create or update the network
           const { data: network, error: networkError } = await supabase
             .from('networks')
             .upsert({
               id: networkId,
-              feed_id: feed.feedId,
-              region_id: region.id,
-              is_available: true,
-              last_check: new Date().toISOString(),
-              error_message: null
+              feed_id: feedId,
+              display_name: displayName,
+              region_id: regionId,
+              is_available: isAvailable
             })
             .select()
             .single();
 
           if (networkError) {
-            console.error('Erreur lors de la création/mise à jour du réseau:', networkError);
-            errors.push(`Erreur pour le réseau ${networkId}: ${networkError.message}`);
-            continue; // Passer au feed suivant si erreur réseau
+            warnings.push(`Erreur lors de la création du réseau ${displayName || networkId}: ${networkError.message}`);
+            continue;
           }
 
-          // Pour chaque agence, créer ou mettre à jour l'opérateur
-          for (const agency of agencies) {
-            try {
-              // Vérifier que l'agence a les champs nécessaires
-              if (!agency.gtfsId) {
-                console.warn(`Agence sans gtfsId, utilisation de l'ID à la place:`, agency);
-                agency.gtfsId = agency.id; // Utiliser l'ID si gtfsId est absent
-              }
-
-              // Créer ou mettre à jour l'opérateur
-              const { data: operator, error: operatorError } = await supabase
-                .from('operators')
-                .upsert({
-                  network_id: networkId,
-                  agency_id: agency.id || `unknown_${Date.now()}`,
-                  name: agency.name || 'Opérateur sans nom',
-                  display_name: agency.name || 'Opérateur sans nom',
-                  gtfs_id: agency.gtfsId,
-                  is_active: true
-                }, {
-                  onConflict: 'network_id,gtfs_id'
-                })
-                .select('id')
-                .single();
-
-              if (operatorError) {
-                console.error('Erreur lors de la création/mise à jour de l\'opérateur:', operatorError);
-                errors.push(`Erreur pour l'agence ${agency.name || 'sans nom'}: ${operatorError.message}`);
-                continue;
-              }
-              
-              if (operator) {
-                processedOperatorIds.add(operator.id);
-                imported++;
-              }
-            } catch (error) {
-              console.error('Erreur lors du traitement de l\'agence:', error);
-              errors.push(`Erreur pour l'agence ${agency.name || 'sans nom'}: ${error.message}`);
-            }
-          }
-        } catch (error) {
-          console.error('Erreur lors du traitement du feed:', error);
-          errors.push(`Erreur pour le feed ${feed.feedId}: ${error.message}`);
-        }
-      }
-
-      // Désactiver les opérateurs qui n'ont pas été trouvés dans l'API
-      if (processedOperatorIds.size > 0) {
-        const operatorIds = Array.from(processedOperatorIds);
-        const networkIds = Array.from(processedNetworkIds);
-
-        console.log(`Désactivation des opérateurs non trouvés. ${operatorIds.length} opérateurs actifs, ${networkIds.length} réseaux traités`);
-
-        // Approche améliorée: désactiver les opérateurs réseau par réseau
-        for (const networkId of networkIds) {
-          const { error: updateOperatorsError } = await supabase
+          // Create or update the operator
+          const { error: operatorError } = await supabase
             .from('operators')
-            .update({ is_active: false })
-            .eq('network_id', networkId)
-            .not('id', 'in', operatorIds);
+            .upsert({
+              id: operatorId, // Use the UUID from CSV
+              network_id: networkId,
+              agency_id: agencyId,
+              name: operatorName,
+              display_name: operatorDisplayName,
+              gtfs_id: operatorGtfsId,
+              is_active: operatorIsActive
+            });
 
-          if (updateOperatorsError) {
-            console.error(`Erreur lors de la désactivation des opérateurs pour le réseau ${networkId}:`, updateOperatorsError);
-            errors.push(`Erreur lors de la désactivation des opérateurs pour le réseau ${networkId}: ${updateOperatorsError.message}`);
+          if (operatorError) {
+            warnings.push(`Erreur lors de la création de l'opérateur ${operatorName}: ${operatorError.message}`);
+            continue;
           }
-        }
-      }
 
-      // Marquer comme indisponibles les réseaux qui n'ont pas été trouvés dans l'API
-      if (processedNetworkIds.size > 0) {
-        const networkIds = Array.from(processedNetworkIds);
-        
-        console.log(`Désactivation des réseaux non trouvés pour la région ${region.id}. ${networkIds.length} réseaux traités`);
-        
-        const { error: updateNetworksError } = await supabase
-          .from('networks')
-          .update({
-            is_available: false,
-            last_check: new Date().toISOString(),
-            error_message: 'Réseau non trouvé lors de la dernière vérification'
-          })
-          .eq('region_id', region.id)
-          .not('id', 'in', networkIds);
-
-        if (updateNetworksError) {
-          console.error('Erreur lors de la mise à jour des réseaux inactifs:', updateNetworksError);
-          errors.push(`Erreur lors de la désactivation des réseaux: ${updateNetworksError.message}`);
+          imported++;
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+          warnings.push(`Erreur lors du traitement de la ligne: ${errorMessage}`);
         }
       }
 
@@ -152,12 +93,12 @@ export const networkCheckService = {
         success: imported > 0,
         imported,
         total,
-        errors: errors.length > 0 ? errors : undefined
+        warnings: warnings.length > 0 ? warnings : undefined
       };
 
     } catch (error) {
-      console.error('Erreur lors de la vérification des réseaux:', error);
-      throw error;
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      throw new Error(`Erreur lors de l'import: ${errorMessage}`);
     }
   }
 };
