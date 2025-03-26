@@ -39,7 +39,8 @@ export const networkService = {
   // Récupérer les réseaux par région
   async getNetworksByRegion(regionId: string): Promise<Network[]> {
     try {
-      const { data, error } = await supabase
+      // Récupérer d'abord tous les réseaux de la région avec leurs opérateurs
+      const { data: networks, error } = await supabase
         .from('networks')
         .select(`
           id,
@@ -62,7 +63,30 @@ export const networkService = {
         .order('feed_id');
 
       if (error) throw error;
-      return data || [];
+
+      // Grouper les réseaux par display_name
+      const networksByDisplayName = new Map<string, Network>();
+      
+      networks?.forEach(network => {
+        const displayName = network.display_name || network.feed_id;
+        
+        if (!networksByDisplayName.has(displayName)) {
+          // Premier réseau avec ce display_name
+          networksByDisplayName.set(displayName, {
+            ...network,
+            operators: network.operators || []
+          });
+        } else {
+          // Fusionner les opérateurs des réseaux ayant le même display_name
+          const existingNetwork = networksByDisplayName.get(displayName)!;
+          existingNetwork.operators = [
+            ...(existingNetwork.operators || []),
+            ...(network.operators || [])
+          ];
+        }
+      });
+
+      return Array.from(networksByDisplayName.values());
     } catch (error) {
       console.error('Erreur lors de la récupération des réseaux:', error);
       return [];

@@ -13,13 +13,14 @@ const TransportModeFilter: React.FC<TransportModeFilterProps> = ({
   onModeChange,
   routes
 }) => {
+  // Définir les modes avec leur route_type correspondant
   const modes = [
-    { mode: TransitMode.BUS, icon: Bus, label: 'Bus', color: 'green' },
-    { mode: TransitMode.RAIL, icon: Train, label: 'Train', color: 'blue' },
-    { mode: TransitMode.TRAM, icon: Tram, label: 'Tramway', color: 'red' },
-    { mode: TransitMode.SUBWAY, icon: Train, label: 'Métro', color: 'purple' },
-    { mode: TransitMode.FERRY, icon: Ship, label: 'Ferry', color: 'cyan' },
-    { mode: TransitMode.CABLE_CAR, icon: Cable, label: 'Téléphérique', color: 'orange' },
+    { mode: TransitMode.SUBWAY, icon: Train, label: 'Métro', color: 'purple', routeType: 1 },
+    { mode: TransitMode.RAIL, icon: Train, label: 'Train', color: 'blue', routeType: 2 },
+    { mode: TransitMode.BUS, icon: Bus, label: 'Bus', color: 'green', routeType: 3 },
+    { mode: TransitMode.TRAM, icon: Tram, label: 'Tramway', color: 'red', routeType: 0 },
+    { mode: TransitMode.FERRY, icon: Ship, label: 'Ferry', color: 'cyan', routeType: 4 },
+    { mode: TransitMode.CABLE_CAR, icon: Cable, label: 'Téléphérique', color: 'orange', routeType: 5 },
   ];
 
   // Récupérer uniquement les modes disponibles dans les lignes
@@ -30,7 +31,9 @@ const TransportModeFilter: React.FC<TransportModeFilterProps> = ({
         uniqueModes.add(route.mode as TransitMode);
       }
     });
-    return modes.filter(mode => uniqueModes.has(mode.mode));
+    return modes
+      .filter(mode => uniqueModes.has(mode.mode))
+      .sort((a, b) => a.routeType - b.routeType);
   }, [routes]);
 
   const handleModeClick = (mode: TransitMode) => {

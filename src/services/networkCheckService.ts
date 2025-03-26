@@ -27,7 +27,6 @@ export const networkCheckService = {
       let total = 0;
       const errors: string[] = [];
       const processedNetworkIds = new Set<string>();
-      const processedOperatorIds = new Set<string>();
 
       // Pour chaque feed, récupérer et traiter les agences
       for (const feed of feeds) {
@@ -73,7 +72,6 @@ export const networkCheckService = {
 
               if (operatorError) throw operatorError;
               if (operator) {
-                processedOperatorIds.add(operator.id);
                 imported++;
               }
 
@@ -88,34 +86,13 @@ export const networkCheckService = {
         }
       }
 
-      // Désactiver les opérateurs qui n'ont pas été trouvés dans l'API
-      if (processedOperatorIds.size > 0) {
-        const operatorIds = Array.from(processedOperatorIds);
-        const networkIds = Array.from(processedNetworkIds);
-
-        // Traiter les opérateurs par lots
-        for (let i = 0; i < networkIds.length; i += BATCH_SIZE) {
-          const networkBatch = networkIds.slice(i, i + BATCH_SIZE);
-          const { error: updateOperatorsError } = await supabase
-            .from('operators')
-            .update({ is_active: false })
-            .in('network_id', networkBatch)
-            .not('id', 'in', operatorIds);
-
-          if (updateOperatorsError) {
-            console.error('Erreur lors de la désactivation des opérateurs:', updateOperatorsError);
-            errors.push(`Erreur lors de la désactivation des opérateurs: ${updateOperatorsError.message}`);
-          }
-        }
-      }
-
       // Marquer comme indisponibles les réseaux qui n'ont pas été trouvés dans l'API
       if (processedNetworkIds.size > 0) {
         const networkIds = Array.from(processedNetworkIds);
         
         // Traiter les réseaux par lots
         for (let i = 0; i < networkIds.length; i += BATCH_SIZE) {
-          const networkBatch = networkIds.slice(i, i + BATCH_SIZE);
+          const batch = networkIds.slice(i, i + BATCH_SIZE);
           const { error: updateNetworksError } = await supabase
             .from('networks')
             .update({
@@ -124,7 +101,7 @@ export const networkCheckService = {
               error_message: 'Réseau non trouvé lors de la dernière vérification'
             })
             .eq('region_id', region.id)
-            .not('id', 'in', networkBatch);
+            .not('id', 'in', batch);
 
           if (updateNetworksError) {
             console.error('Erreur lors de la mise à jour des réseaux inactifs:', updateNetworksError);

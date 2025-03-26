@@ -41,6 +41,24 @@ const LinesList: React.FC<LinesListProps> = ({
     }
   };
 
+  // Trier les lignes par type puis par nom court
+  const sortedLines = [...lines].sort((a, b) => {
+    // D'abord trier par route_type
+    if (a.type !== b.type) {
+      return a.type - b.type;
+    }
+    
+    // Ensuite trier par shortName en tenant compte du format numérique
+    const aNum = parseInt(a.shortName);
+    const bNum = parseInt(b.shortName);
+    
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      return aNum - bNum;
+    }
+    
+    return a.shortName.localeCompare(b.shortName);
+  });
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40">
@@ -57,7 +75,7 @@ const LinesList: React.FC<LinesListProps> = ({
     );
   }
 
-  if (!lines.length) {
+  if (!sortedLines.length) {
     return (
       <div className="bg-white shadow rounded-lg p-8">
         <div className="text-center">
@@ -77,7 +95,7 @@ const LinesList: React.FC<LinesListProps> = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-      {lines.map((line) => {
+      {sortedLines.map((line) => {
         const backgroundColor = line.color ? `#${line.color}` : '#f3f4f6';
         const textColor = line.textColor ? `#${line.textColor}` : (line.color ? '#FFFFFF' : '#000000');
         const [origin, destination] = line.longName.split(' - ');
