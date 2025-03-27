@@ -6,12 +6,14 @@ interface TransportModeFilterProps {
   selectedModes: TransitMode[];
   onModeChange: (modes: TransitMode[]) => void;
   routes: Route[];
+  filteredRoutes: Route[];
 }
 
 const TransportModeFilter: React.FC<TransportModeFilterProps> = ({
   selectedModes,
   onModeChange,
-  routes
+  routes,
+  filteredRoutes
 }) => {
   // Définir les modes avec leur route_type correspondant
   const modes = [
@@ -22,6 +24,26 @@ const TransportModeFilter: React.FC<TransportModeFilterProps> = ({
     { mode: TransitMode.FERRY, icon: Ship, label: 'Ferry', color: 'cyan', routeType: 4 },
     { mode: TransitMode.CABLE_CAR, icon: Cable, label: 'Téléphérique', color: 'orange', routeType: 5 },
   ];
+
+  // Calculer le nombre total de lignes par mode
+  const totalModeStats = useMemo(() => {
+    const stats = new Map<TransitMode, number>();
+    routes.forEach(route => {
+      const mode = route.mode as TransitMode;
+      stats.set(mode, (stats.get(mode) || 0) + 1);
+    });
+    return stats;
+  }, [routes]);
+
+  // Calculer le nombre de lignes filtrées par mode
+  const filteredModeStats = useMemo(() => {
+    const stats = new Map<TransitMode, number>();
+    filteredRoutes.forEach(route => {
+      const mode = route.mode as TransitMode;
+      stats.set(mode, (stats.get(mode) || 0) + 1);
+    });
+    return stats;
+  }, [filteredRoutes]);
 
   // Récupérer uniquement les modes disponibles dans les lignes
   const availableModes = useMemo(() => {
@@ -52,6 +74,9 @@ const TransportModeFilter: React.FC<TransportModeFilterProps> = ({
     <div className="flex flex-wrap gap-2 mb-6">
       {availableModes.map(({ mode, icon: Icon, label, color }) => {
         const isSelected = selectedModes.includes(mode);
+        const totalCount = totalModeStats.get(mode) || 0;
+        const filteredCount = filteredModeStats.get(mode) || 0;
+        
         return (
           <button
             key={mode}
@@ -68,6 +93,17 @@ const TransportModeFilter: React.FC<TransportModeFilterProps> = ({
           >
             <Icon className="h-4 w-4 mr-2" />
             <span className="text-sm font-medium">{label}</span>
+            <div className="ml-2 flex items-center space-x-1">
+              <span className={`
+                px-2 py-0.5 text-xs font-medium rounded-full
+                ${isSelected ? `bg-${color}-200` : 'bg-gray-200'}
+              `}>
+                {filteredCount}
+              </span>
+              {filteredCount !== totalCount && (
+                <span className="text-xs text-gray-500">/ {totalCount}</span>
+              )}
+            </div>
           </button>
         );
       })}

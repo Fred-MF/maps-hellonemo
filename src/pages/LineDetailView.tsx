@@ -5,6 +5,7 @@ import { networkService } from '../services/networkService';
 import { Bus, Train, Ship, Cable, Drama as Tram, ArrowLeft } from 'lucide-react';
 import LineTimeline from '../components/LineTimeline';
 import LineDetailTabs from '../components/LineDetailTabs';
+import LineNameDisplay from '../components/LineNameDisplay';
 
 // Chargement paresseux des composants lourds
 const LineInfo = lazy(() => import('../components/LineInfo'));
@@ -23,14 +24,12 @@ const LineDetailView: React.FC = () => {
   const operatorId = searchParams.get('operator');
   const headerRef = useRef<HTMLElement>(null);
 
-  // État pour gérer l'onglet actif avec initialisation depuis le localStorage
   const [activeTab, setActiveTab] = useState<'timeline' | 'map' | 'info'>(() => {
     const savedTab = localStorage.getItem(ACTIVE_TAB_STORAGE_KEY);
     return (savedTab as 'timeline' | 'map' | 'info') || 'timeline';
   });
   const [isHeaderSticky, setIsHeaderSticky] = useState(false);
 
-  // Sauvegarder l'onglet actif dans le localStorage
   useEffect(() => {
     localStorage.setItem(ACTIVE_TAB_STORAGE_KEY, activeTab);
   }, [activeTab]);
@@ -145,6 +144,12 @@ const LineDetailView: React.FC = () => {
   const backgroundColor = line.color ? `#${line.color}` : '#f3f4f6';
   const textColor = line.textColor ? `#${line.textColor}` : (line.color ? '#FFFFFF' : '#000000');
 
+  const hasRealtimeData = line.patterns?.some(pattern =>
+    pattern.stops?.some(stop =>
+      stop.realtimeDeparture || stop.realtimeArrival
+    )
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header 
@@ -171,7 +176,11 @@ const LineDetailView: React.FC = () => {
                 <span className="font-medium text-sm">{line.shortName}</span>
               </div>
               <div className="text-sm hidden sm:block">
-                {line.origin} → {line.destination}
+                <LineNameDisplay
+                  shortName={line.shortName}
+                  longName={line.longName}
+                  hasRealtimeData={hasRealtimeData}
+                />
               </div>
             </div>
             <div className="w-8" />
@@ -201,6 +210,7 @@ const LineDetailView: React.FC = () => {
                 <LineTimeline 
                   pattern={line.patterns[0]} 
                   color={backgroundColor}
+                  regionId={regionId}
                 />
               )}
               {activeTab === 'map' && (

@@ -3,10 +3,12 @@ import { Pattern, Stop } from '../types/api';
 import { Clock, AlertCircle } from 'lucide-react';
 import { format, differenceInMinutes } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Link } from 'react-router-dom';
 
 interface LineTimelineProps {
   pattern: Pattern;
   color?: string;
+  regionId: string;
 }
 
 interface Connection {
@@ -16,7 +18,7 @@ interface Connection {
   color?: string;
 }
 
-const LineTimeline: React.FC<LineTimelineProps> = ({ pattern, color = '#1d4ed8' }) => {
+const LineTimeline: React.FC<LineTimelineProps> = ({ pattern, color = '#1d4ed8', regionId }) => {
   const now = new Date();
 
   // Fonction pour formater l'heure au format HH:mm
@@ -54,10 +56,15 @@ const LineTimeline: React.FC<LineTimelineProps> = ({ pattern, color = '#1d4ed8' 
         <div className="text-right space-y-12">
           {pattern.stops.map((stop, index) => (
             <div key={stop.gtfsId} className="relative pt-2">
-              <div className="font-medium text-gray-900">{stop.name}</div>
-              {stop.desc && (
-                <div className="text-sm text-gray-500">{stop.desc}</div>
-              )}
+              <Link 
+                to={`/stop/${stop.gtfsId}?region=${regionId}`}
+                className="hover:text-blue-600"
+              >
+                <div className="font-medium text-gray-900">{stop.name}</div>
+                {stop.desc && (
+                  <div className="text-sm text-gray-500">{stop.desc}</div>
+                )}
+              </Link>
               {/* Badges de connexion */}
               {stop.connections && (
                 <div className="mt-1 flex flex-wrap justify-end gap-1">

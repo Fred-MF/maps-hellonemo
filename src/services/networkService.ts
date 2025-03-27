@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { createApiClient } from './api';
-import { Network, Operator, Route } from '../types/api';
+import { Network, Operator, Route, Stop } from '../types/api';
 import { regions } from '../data/regions';
 
 export const networkService = {
@@ -146,6 +146,24 @@ export const networkService = {
       };
     } catch (error) {
       console.error('Erreur lors de la récupération des détails de la route:', error);
+      return null;
+    }
+  },
+
+  // Récupérer les détails d'un arrêt
+  async getStopDetails(stopId: string, regionId: string): Promise<Stop | null> {
+    try {
+      const region = regions.find(r => r.id === regionId);
+      if (!region) throw new Error('Région non trouvée');
+
+      const apiClient = createApiClient(region.apiUrl);
+      const stop = await apiClient.getStopDetails(stopId);
+      
+      if (!stop) return null;
+
+      return stop;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des détails de l\'arrêt:', error);
       return null;
     }
   },

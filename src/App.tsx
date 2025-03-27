@@ -9,6 +9,7 @@ import TransportView from './pages/TransportView';
 import NetworkDetailView from './pages/NetworkDetailView';
 import LinesView from './pages/LinesView';
 import LineDetailView from './pages/LineDetailView';
+import StopDetailView from './pages/StopDetailView';
 import AgencyImport from './pages/admin/AgencyImport';
 import NetworkList from './pages/admin/NetworkList';
 import NetworkImport from './pages/admin/NetworkImport';
@@ -32,6 +33,7 @@ function App() {
               <Route path="/reseau/:name" element={<NetworkDetailView />} />
               <Route path="/reseau/:name/lignes" element={<LinesView />} />
               <Route path="/line/:lineId" element={<LineDetailView />} />
+              <Route path="/stop/:stopId" element={<StopDetailView />} />
               
               {/* Routes d'administration protégées */}
               <Route path="/login" element={<Login />} />

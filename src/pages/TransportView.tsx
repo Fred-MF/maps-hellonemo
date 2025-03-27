@@ -10,6 +10,7 @@ import OperatorFilter from '../components/OperatorFilter';
 import LinesList from '../components/LinesList';
 import Breadcrumb from '../components/Breadcrumb';
 import TransportModeFilter from '../components/TransportModeFilter';
+import GlobalSearch from '../components/GlobalSearch';
 
 const TransportView: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -18,6 +19,7 @@ const TransportView: React.FC = () => {
   const [selectedOperator, setSelectedOperator] = useState<Operator | null>(null);
   const [selectedModes, setSelectedModes] = useState<TransitMode[]>([]);
   const [activeView, setActiveView] = useState<'region' | 'network' | 'operator'>('region');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Récupérer les paramètres de l'URL
   const regionId = searchParams.get('region');
@@ -72,6 +74,7 @@ const TransportView: React.FC = () => {
   // Réinitialiser les modes sélectionnés quand l'opérateur change
   useEffect(() => {
     setSelectedModes([]);
+    setSearchTerm('');
   }, [selectedOperator]);
 
   // Restaurer l'état depuis l'URL au chargement
@@ -163,11 +166,33 @@ const TransportView: React.FC = () => {
     }
   };
 
-  // Filtrer les routes par mode de transport
+  // Filtrer les routes par mode de transport et terme de recherche
   const filteredRoutes = React.useMemo(() => {
-    if (selectedModes.length === 0) return routes;
-    return routes.filter(route => selectedModes.includes(route.mode as TransitMode));
-  }, [routes, selectedModes]);
+    let filtered = routes;
+
+    // Filtrer par mode de transport
+    if (selectedModes.length > 0) {
+      filtered = filtered.filter(route => selectedModes.includes(route.mode as TransitMode));
+    }
+
+    // Filtrer par terme de recherche
+    if (searchTerm) {
+      filtered = filtered.filter(route => {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          route.shortName.toLowerCase().includes(searchLower) ||
+          route.longName.toLowerCase().includes(searchLower) ||
+          route.patterns?.some(pattern =>
+            pattern.stops?.some(stop =>
+              stop.name.toLowerCase().includes(searchLower)
+            )
+          )
+        );
+      });
+    }
+
+    return filtered;
+  }, [routes, selectedModes, searchTerm]);
 
   const renderActiveView = () => {
     switch (activeView) {
@@ -238,21 +263,32 @@ const TransportView: React.FC = () => {
               )}
             </h2>
 
-            {/* Filtre par mode de transport */}
-            <TransportModeFilter
-              selectedModes={selectedModes}
-              onModeChange={setSelectedModes}
-              routes={routes}
-            />
+            <div className="space-y-4">
+              {/* Barre de recherche globale */}
+              <GlobalSearch
+                routes={routes}
+                selectedModes={selectedModes}
+                onSearch={setSearchTerm}
+                filteredCount={filteredRoutes.length}
+              />
 
-            <LinesList
-              lines={filteredRoutes}
-              isLoading={isLoadingNetworks || isLoadingRoutes}
-              error={null}
-              regionId={selectedRegion.id}
-              networkId={selectedNetwork.id}
-              operatorId={selectedOperator.id}
-            />
+              {/* Filtre par mode de transport */}
+              <TransportModeFilter
+                selectedModes={selectedModes}
+                onModeChange={setSelectedModes}
+                routes={routes}
+                filteredRoutes={filteredRoutes}
+              />
+
+              <LinesList
+                lines={filteredRoutes}
+                isLoading={isLoadingNetworks || isLoadingRoutes}
+                error={null}
+                regionId={selectedRegion.id}
+                networkId={selectedNetwork.id}
+                operatorId={selectedOperator.id}
+              />
+            </div>
           </div>
         )}
       </main>

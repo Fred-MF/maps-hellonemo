@@ -1,7 +1,8 @@
 import React from 'react';
 import { Route } from '../types/api';
-import { Bus, Train, Ship, Cable, Drama as Tram, AlertCircle, ArrowRight } from 'lucide-react';
+import { Bus, Train, Ship, Cable, Drama as Tram, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import LineNameDisplay from './LineNameDisplay';
 
 interface LinesListProps {
   lines: Route[];
@@ -98,7 +99,13 @@ const LinesList: React.FC<LinesListProps> = ({
       {sortedLines.map((line) => {
         const backgroundColor = line.color ? `#${line.color}` : '#f3f4f6';
         const textColor = line.textColor ? `#${line.textColor}` : (line.color ? '#FFFFFF' : '#000000');
-        const [origin, destination] = line.longName.split(' - ');
+        
+        // Vérifier si la ligne a des données temps réel
+        const hasRealtimeData = line.patterns?.some(pattern =>
+          pattern.stops?.some(stop =>
+            stop.realtimeDeparture || stop.realtimeArrival
+          )
+        );
 
         return (
           <Link 
@@ -118,11 +125,11 @@ const LinesList: React.FC<LinesListProps> = ({
                 <span className="font-medium text-sm">{line.shortName}</span>
               </div>
               <div className="flex-1 px-3 py-1 min-w-0">
-                <div className="flex items-center text-sm text-gray-600 space-x-2">
-                  <span className="truncate">{origin}</span>
-                  <ArrowRight className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{destination}</span>
-                </div>
+                <LineNameDisplay
+                  shortName={line.shortName}
+                  longName={line.longName}
+                  hasRealtimeData={hasRealtimeData}
+                />
               </div>
             </div>
           </Link>

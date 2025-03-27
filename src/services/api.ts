@@ -59,6 +59,8 @@ export const createApiClient = (apiUrl: string) => {
         return { route: { patterns: [] } } as T;
       case 'getStopsByPattern':
         return { pattern: { stops: [] } } as T;
+      case 'getStopDetails':
+        return { stop: null } as T;
       default:
         return {} as T;
     }
@@ -177,6 +179,15 @@ export const createApiClient = (apiUrl: string) => {
                   code
                   lat
                   lon
+                  stoptimesWithoutPatterns {
+                    scheduledDeparture
+                    scheduledArrival
+                    realtimeDeparture
+                    realtimeArrival
+                    realtime
+                    realtimeState
+                    serviceDay
+                  }
                 }
               }
             }
@@ -243,6 +254,15 @@ export const createApiClient = (apiUrl: string) => {
                 lon
                 zoneId
                 platformCode
+                stoptimesWithoutPatterns {
+                  scheduledDeparture
+                  scheduledArrival
+                  realtimeDeparture
+                  realtimeArrival
+                  realtime
+                  realtimeState
+                  serviceDay
+                }
               }
             }
           }
@@ -298,6 +318,15 @@ export const createApiClient = (apiUrl: string) => {
                 code
                 lat
                 lon
+                stoptimesWithoutPatterns {
+                  scheduledDeparture
+                  scheduledArrival
+                  realtimeDeparture
+                  realtimeArrival
+                  realtime
+                  realtimeState
+                  serviceDay
+                }
               }
               trips {
                 gtfsId
@@ -352,7 +381,15 @@ export const createApiClient = (apiUrl: string) => {
               lon
               zoneId
               platformCode
-              wheelchairBoarding
+              stoptimesWithoutPatterns {
+                scheduledDeparture
+                scheduledArrival
+                realtimeDeparture
+                realtimeArrival
+                realtime
+                realtimeState
+                serviceDay
+              }
             }
           }
         }
@@ -384,6 +421,92 @@ export const createApiClient = (apiUrl: string) => {
           });
         }
         return [];
+      }
+    },
+
+    // Récupérer les détails d'un arrêt
+    getStopDetails: async (stopId: string): Promise<Stop | null> => {
+      const query = `
+        query StopDetails($stopId: String!) {
+          stop(id: $stopId) {
+            gtfsId
+            name
+            code
+            desc
+            lat
+            lon
+            zoneId
+            platformCode
+            routes {
+              gtfsId
+              shortName
+              longName
+              mode
+              type
+              color
+              textColor
+              patterns {
+                code
+                headsign
+                stops {
+                  gtfsId
+                  name
+                  stoptimesWithoutPatterns {
+                    scheduledDeparture
+                    scheduledArrival
+                    realtimeDeparture
+                    realtimeArrival
+                    realtime
+                    realtimeState
+                    serviceDay
+                  }
+                }
+              }
+            }
+            stoptimesWithoutPatterns(
+              startTime: 0,
+              timeRange: 86400,
+              numberOfDepartures: 10,
+              omitNonPickups: false
+            ) {
+              scheduledDeparture
+              scheduledArrival
+              realtimeDeparture
+              realtimeArrival
+              realtime
+              realtimeState
+              serviceDay
+              headsign
+              trip {
+                route {
+                  gtfsId
+                  shortName
+                  longName
+                  mode
+                  color
+                  textColor
+                }
+                pattern {
+                  code
+                  headsign
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      try {
+        const response = await client.post('', { 
+          query,
+          variables: { stopId }
+        });
+
+        const data = handleGraphQLResponse<{ stop: Stop | null }>(response, 'getStopDetails');
+        return data.stop;
+      } catch (error) {
+        console.error('Erreur lors de la récupération des détails de l\'arrêt:', error);
+        return null;
       }
     }
   };
